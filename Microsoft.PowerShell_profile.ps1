@@ -13,23 +13,23 @@
 ### This is the default policy on Windows Server 2012 R2 and above for server Windows. For 
 ### more information about execution policies, run Get-Help about_Execution_Policies.
 
-#check for updates
-try{
-    $url = "https://raw.githubusercontent.com/ChrisTitusTech/powershell-profile/main/Microsoft.PowerShell_profile.ps1"
-    $oldhash = Get-FileHash $PROFILE
-    Invoke-RestMethod $url -OutFile "$env:temp/Microsoft.PowerShell_profile.ps1"
-    $newhash = Get-FileHash "$env:temp/Microsoft.PowerShell_profile.ps1"
-    if ($newhash -ne $oldhash) {
-        Get-Content "$env:temp/Microsoft.PowerShell_profile.ps1" | Set-Content $PROFILE
-        . $PROFILE
-        return
-    }
-}
-catch {
-    Write-Error "unable to check for `$profile updates"
-}
-Remove-Variable @("newhash", "oldhash", "url")
-Remove-Item  "$env:temp/Microsoft.PowerShell_profile.ps1"
+# #check for updates
+# try{
+#     $url = "https://raw.githubusercontent.com/ChrisTitusTech/powershell-profile/main/Microsoft.PowerShell_profile.ps1"
+#     $oldhash = Get-FileHash $PROFILE
+#     Invoke-RestMethod $url -OutFile "$env:temp/Microsoft.PowerShell_profile.ps1"
+#     $newhash = Get-FileHash "$env:temp/Microsoft.PowerShell_profile.ps1"
+#     if ($newhash -ne $oldhash) {
+#         Get-Content "$env:temp/Microsoft.PowerShell_profile.ps1" | Set-Content $PROFILE
+#         . $PROFILE
+#         return
+#     }
+# }
+# catch {
+#     Write-Error "unable to check for `$profile updates"
+# }
+# Remove-Variable @("newhash", "oldhash", "url")
+# Remove-Item  "$env:temp/Microsoft.PowerShell_profile.ps1"
 
 # Import Terminal Icons
 Import-Module -Name Terminal-Icons
@@ -70,7 +70,8 @@ if (Test-Path "$env:USERPROFILE\Work Folders") {
 function prompt { 
     if ($isAdmin) {
         "[" + (Get-Location) + "] # " 
-    } else {
+    }
+    else {
         "[" + (Get-Location) + "] $ "
     }
 }
@@ -84,7 +85,8 @@ if ($isAdmin) {
 function dirs {
     if ($args.Count -gt 0) {
         Get-ChildItem -Recurse -Include "$args" | Foreach-Object FullName
-    } else {
+    }
+    else {
         Get-ChildItem -Recurse | Foreach-Object FullName
     }
 }
@@ -96,7 +98,8 @@ function admin {
     if ($args.Count -gt 0) {   
         $argList = "& '" + $args + "'"
         Start-Process "$psHome\powershell.exe" -Verb runAs -ArgumentList $argList
-    } else {
+    }
+    else {
         Start-Process "$psHome\powershell.exe" -Verb runAs
     }
 }
@@ -111,7 +114,8 @@ Set-Alias -Name sudo -Value admin
 function Edit-Profile {
     if ($host.Name -match "ise") {
         $psISE.CurrentPowerShellTab.Files.Add($profile.CurrentUserAllHosts)
-    } else {
+    }
+    else {
         notepad $profile.CurrentUserAllHosts
     }
 }
@@ -135,21 +139,24 @@ Function Test-CommandExists {
 # If your favorite editor is not here, add an elseif and ensure that the directory it is installed in exists in your $env:Path
 #
 if (Test-CommandExists nvim) {
-    $EDITOR='nvim'
-} elseif (Test-CommandExists pvim) {
-    $EDITOR='pvim'
-} elseif (Test-CommandExists vim) {
-    $EDITOR='vim'
-} elseif (Test-CommandExists vi) {
-    $EDITOR='vi'
-} elseif (Test-CommandExists code) {
-    $EDITOR='code'
-} elseif (Test-CommandExists notepad) {
-    $EDITOR='notepad'
-} elseif (Test-CommandExists notepad++) {
-    $EDITOR='notepad++'
-} elseif (Test-CommandExists sublime_text) {
-    $EDITOR='sublime_text'
+    $EDITOR = 'nvim'
+}
+elseif (Test-CommandExists pvim) {
+    $EDITOR = 'pvim'
+}
+elseif (Test-CommandExists vim) {
+    $EDITOR = 'vim'
+}
+elseif (Test-CommandExists vi) {
+    $EDITOR = 'vi'
+}
+elseif (Test-CommandExists code) {
+    #VS Code
+    $EDITOR = 'code'
+}
+elseif (Test-CommandExists notepad) {
+    #fallback to notepad since it exists on every windows machine
+    $EDITOR = 'notepad'
 }
 Set-Alias -Name vim -Value $EDITOR
 
@@ -166,7 +173,7 @@ function lazyg {
     git push
 }
 function Get-PubIP {
-    (Invoke-WebRequest http://ifconfig.me/ip ).Content
+ (Invoke-WebRequest http://ifconfig.me/ip ).Content
 }
 function uptime {
     #Windows Powershell only
@@ -192,9 +199,6 @@ function unzip ($file) {
     $fullFile = Get-ChildItem -Path $pwd -Filter .\cove.zip | ForEach-Object { $_.FullName }
     Expand-Archive -Path $fullFile -DestinationPath $pwd
 }
-function ix ($file) {
-    curl.exe -F "f:1=@$file" ix.io
-}
 function grep($regex, $dir) {
     if ( $dir ) {
         Get-ChildItem $dir | select-string $regex
@@ -209,7 +213,7 @@ function df {
     get-volume
 }
 function sed($file, $find, $replace) {
-    (Get-Content $file).replace("$find", $replace) | Set-Content $file
+        (Get-Content $file).replace("$find", $replace) | Set-Content $file
 }
 function which($name) {
     Get-Command $name | Select-Object -ExpandProperty Definition
@@ -224,18 +228,9 @@ function pgrep($name) {
     Get-Process $name
 }
 
-# Import the Chocolatey Profile that contains the necessary code to enable
-# tab-completions to function for `choco`.
-# Be aware that if you are missing these lines from your profile, tab completion
-# for `choco` will not function.
-# See https://ch0.co/tab-completion for details.
-$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-if (Test-Path($ChocolateyProfile)) {
-    Import-Module "$ChocolateyProfile"
-}
-
-Invoke-Expression (& { (zoxide init powershell | Out-String) })
-
 
 ## Final Line to set prompt
-oh-my-posh init pwsh --config https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/cobalt2.omp.json | Invoke-Expression
+# oh-my-posh init pwsh --config ~/jandedobbeleer.omp.json | Invoke-Expression
+# oh-my-posh init pwsh --config ~/fish.omp.json | Invoke-Expression
+# oh-my-posh init pwsh --config https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/markbull.omp.json | Invoke-Expression
+oh-my-posh init pwsh --config https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/fish.omp.json | Invoke-Expression
